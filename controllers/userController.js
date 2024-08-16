@@ -1,8 +1,5 @@
-const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-
-const JWT_SECRET = process.env.JWT_SECRET;
-const JWT_EXPIRE = process.env.JWT_EXPIRE || '2h';
+const mongoose = require('mongoose');
 
 class UserController {
     async index(req, res) {

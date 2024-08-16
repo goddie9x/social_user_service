@@ -1,7 +1,7 @@
 const userController = require('../controllers/userController');
 
 const mapModUserRoute = (router) => {
-    router.delete('/batch', userController.register);
+    router.delete('/batch', userController.deleteMultipleUsers);
     router.delete('/:id', userController.deleteUser);
 }
 

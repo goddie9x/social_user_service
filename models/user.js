@@ -1,8 +1,12 @@
 const mongoose = require('../configs/db');
-const bcrypt = require('bcrypt');
 const USER_CONSTANTS = require('../constants/users');
 
 const Schema = mongoose.Schema;
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_EXPIRE = process.env.JWT_EXPIRE || '2h';
+
 const UserSchema = new Schema({
     username: {
         type: String,
@@ -78,7 +82,7 @@ const UserSchema = new Schema({
     }
 });
 
-UserSchema.pre('save', async next => {
+UserSchema.pre('save',async function (next) {
     if (this.isModified('password')) {
         this.password = await bcrypt.hash(this.password, 10);
     }
@@ -93,7 +97,7 @@ UserSchema.methods.validatePassword = async function (password) {
 };
 UserSchema.methods.generateAuthToken = () => {
     return jwt.sign(
-        { userId: newUser._id, username: newUser.username, role: newUser.role },
+        { userId: this._id, username: this.username, role: this.role },
         JWT_SECRET,
         { expiresIn: JWT_EXPIRE }
     );
