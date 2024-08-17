@@ -1,6 +1,9 @@
 const User = require('../models/user');
 const mongoose = require('mongoose');
 
+const USER_CONSTANTS = require('../constants/users');
+const { IncorrectPermission } = require('../exceptions/commonExceptions');
+
 class UserController {
     async index(req, res) {
         try {
@@ -65,9 +68,9 @@ class UserController {
 
             const token = newUser.generateAuthToken();
 
-            res.status(201).json({ message: 'User registered successfully!', token });
+            return res.status(201).json({ message: 'User registered successfully!', token });
         } catch (error) {
-            res.status(400).json({ message: error.message });
+            return res.status(400).json({ message: error.message });
         }
     }
     async login(req, res) {
@@ -76,19 +79,19 @@ class UserController {
             const user = await User.findOne({ username });
 
             if (!user) {
-                return res.status(401).json({ message: 'Invalid username or password' });
+                return res.status(400).json({ message: 'Invalid username or password' });
             }
 
             const isValid = await user.validatePassword(password);
 
             if (!isValid) {
-                return res.status(401).json({ message: 'Invalid username or password' });
+                return res.status(400).json({ message: 'Invalid username or password' });
             }
 
             const token = user.generateAuthToken();
-            res.json({ token });
+            return res.json({ token });
         } catch (error) {
-            res.status(500).json({ message: 'Error logging in', error: error.message });
+            return res.status(500).json({ message: 'Error logging in', error: error.message });
         }
     }
     async getUserById(req, res) {
@@ -106,16 +109,22 @@ class UserController {
     }
     async updateUser(req, res) {
         try {
-            const updates = req.body;
-            const user = await User.findByIdAndUpdate(req.params.id, updates, { new: true });
+            const { updates, currentUser } = req.body;
+            const targetUpdateId = req.params.id;
+
+            if (targetUpdateId != currentUser.userId && currentUser.role == USER_CONSTANTS.ROLES.user) {
+                throw new IncorrectPermission();
+            }
+            
+            const user = await User.findByIdAndUpdate(targetUpdateId, updates, { new: true });
 
             if (!user) {
                 return res.status(404).json({ message: 'User not found' });
             }
 
-            res.json(user);
+            return res.json(user);
         } catch (error) {
-            res.status(400).json({ message: error.message });
+            return res.status(400).json({ message: error.message });
         }
     }
     async updatePassword(req, res) {
@@ -136,9 +145,9 @@ class UserController {
             user.password = newPassword;
             await user.save();
 
-            res.json({ message: 'Password updated successfully' });
+            return res.json({ message: 'Password updated successfully' });
         } catch (error) {
-            res.status(400).json({ message: error.message });
+            return res.status(400).json({ message: error.message });
         }
     }
     async deleteUser(req, res) {
@@ -149,9 +158,9 @@ class UserController {
                 return res.status(404).json({ message: 'User not found' });
             }
 
-            res.json({ message: 'User deleted successfully' });
+            return res.json({ message: 'User deleted successfully' });
         } catch (error) {
-            res.status(500).json({ message: error.message });
+            return res.status(500).json({ message: error.message });
         }
     }
     async deleteMultipleUsers(req, res) {
@@ -172,9 +181,9 @@ class UserController {
                 return res.status(404).json({ message: 'No users found with the provided IDs' });
             }
 
-            res.json({ message: `${result.deletedCount} users deleted successfully` });
+            return res.json({ message: `${result.deletedCount} users deleted successfully` });
         } catch (error) {
-            res.status(500).json({ message: error.message });
+            return res.status(500).json({ message: error.message });
         }
     }
 }

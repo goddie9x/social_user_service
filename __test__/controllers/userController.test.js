@@ -102,7 +102,7 @@ describe('UserController', () => {
             expect(jwt.sign).not.toHaveBeenCalled();
         });
 
-        it('should return 401 if invalid username or password', async () => {
+        it('should return 400 if invalid username or password', async () => {
             User.findOne = jest.fn().mockResolvedValue(null); // No user found
 
             const response = await request(app)
@@ -112,7 +112,7 @@ describe('UserController', () => {
                     password: 'wrongPassword'
                 });
 
-            expect(response.status).toBe(401);
+            expect(response.status).toBe(400);
             expect(response.body).toEqual({ message: 'Invalid username or password' });
         });
     });

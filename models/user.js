@@ -7,6 +7,8 @@ const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRE = process.env.JWT_EXPIRE || '2h';
 
+const rolesArray = Object.values(USER_CONSTANTS.ROLES);
+
 const UserSchema = new Schema({
     username: {
         type: String,
@@ -65,8 +67,8 @@ const UserSchema = new Schema({
     },
     role: {
         type: String,
-        enum: USER_CONSTANTS.ROLES,
-        default: 'user'
+        enum: rolesArray,
+        default: USER_CONSTANTS.ROLES.user
     },
     followers: [{
         type: Schema.Types.ObjectId,
@@ -82,7 +84,7 @@ const UserSchema = new Schema({
     }
 });
 
-UserSchema.pre('save',async function (next) {
+UserSchema.pre('save', async function (next) {
     if (this.isModified('password')) {
         this.password = await bcrypt.hash(this.password, 10);
     }

@@ -1,5 +1,9 @@
 const USER_CONSTANTS = {
-    ROLES: ['user', 'mod', 'admin']
+    ROLES: {
+        admin: 0,
+        mod: 1,
+        user: 2
+    }
 }
 
 module.exports = USER_CONSTANTS;
