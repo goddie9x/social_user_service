@@ -1,7 +1,6 @@
-const kafka = require('kafka-node');
+const { Producer, kafkaClient } = require('./init');
 
-const kafkaClient = new kafka.KafkaClient({ kafkaHost: process.env.KAFKA_CLIENT_HOST });
-const kafkaProducer = new kafka.Producer(kafkaClient);
+const kafkaProducer = new Producer(kafkaClient);
 
 kafkaProducer.on('ready', () => {
     console.log('Kafka Producer is connected and ready.');
@@ -11,13 +10,13 @@ kafkaProducer.on('error', (err) => {
     console.error('Kafka Producer error:', err);
 });
 
-const sendKafkaMessage = ({ topic, messages }) => {
+const sendKafkaMessage = ({ topic, message }) => {
     return new Promise((resolve, reject) => {
         const payloads = [
-            { topic: topic, messages: JSON.stringify(messages) }
+            { topic: topic, message }
         ];
 
-        producer.send(payloads, (err, data) => {
+        kafkaProducer.send(payloads, (err, data) => {
             if (err) {
                 console.error('Error sending message:', err);
                 reject(err);
@@ -29,4 +28,4 @@ const sendKafkaMessage = ({ topic, messages }) => {
     });
 };
 
-module.exports = { kafkaProducer, sendKafkaMessage, kafkaClient };
+module.exports = { sendKafkaMessage, kafkaClient };

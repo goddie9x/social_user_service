@@ -1,0 +1,102 @@
+syntax = "proto3";
+
+package userservice;
+
+service UserService {
+  rpc GetUsersWithPagination (GetUsersWithPaginationRequest) returns (GetUsersWithPaginationResponse);
+  rpc Register (RegisterRequest) returns (AuthTokenResponse);
+  rpc Login (LoginRequest) returns (AuthTokenResponse);
+  rpc GetUserById (GetUserByIdRequest) returns (User);
+  rpc UpdateUser (UpdateUserRequest) returns (User);
+  rpc UpdatePassword (UpdatePasswordRequest) returns (Empty);
+  rpc DeleteUser (DeleteUserRequest) returns (Empty);
+  rpc DeleteMultipleUsers (DeleteMultipleUsersRequest) returns (DeleteMultipleUsersResponse);
+}
+
+message User {
+  string id = 1;
+  string username = 2;
+  string firstName = 3;
+  string lastName = 4;
+  repeated Email emails = 5;
+  repeated Phone phones = 6;
+  string avatarUrl = 7;
+  string coverPhotoUrl = 8;
+  int32 role = 9;
+  repeated string followerIds = 10;
+  string createdAt = 11;
+  string updatedAt = 12;
+}
+
+message Email {
+  string email = 1;
+  bool isPrimary = 2;
+  bool isVerified = 3;
+}
+
+message Phone {
+  string number = 1;
+  bool isPrimary = 2;
+  bool isVerified = 3;
+}
+
+message GetUsersWithPaginationRequest {
+  string username = 1;
+  string fullName = 2;
+  string email = 3;
+  int32 page = 4;
+  int32 limit = 5;
+}
+
+message GetUsersWithPaginationResponse {
+  int32 page = 1;
+  int32 limit = 2;
+  int32 totalUsers = 3;
+  int32 totalPages = 4;
+  repeated User users = 5;
+}
+
+message RegisterRequest {
+  string username = 1;
+  string password = 2;
+  string email = 3;
+}
+
+message LoginRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message AuthTokenResponse {
+  string token = 1;
+}
+
+message GetUserByIdRequest {
+  string id = 1;
+}
+
+message UpdateUserRequest {
+  string id = 1;
+  User updates = 2;
+  User currentUser = 3;
+}
+
+message UpdatePasswordRequest {
+  string id = 1;
+  string oldPassword = 2;
+  string newPassword = 3;
+}
+
+message DeleteUserRequest {
+  string id = 1;
+}
+
+message DeleteMultipleUsersRequest {
+  repeated string ids = 1;
+}
+
+message DeleteMultipleUsersResponse {
+  int32 deletedCount = 1;
+}
+
+message Empty {}

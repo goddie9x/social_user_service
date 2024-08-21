@@ -13,4 +13,21 @@ class IncorrectPermission extends CommonException {
     }
 }
 
-module.exports = CommonException;
+class BadRequestException extends CommonException {
+    constructor(message, statusCode, errorCode) {
+        super(message || 'Request incorrect', statusCode || 400, errorCode || 400);
+    }
+}
+class TargetNotExistException extends CommonException {
+    constructor(message, statusCode, errorCode) {
+        super(message || 'Target not exist', statusCode || 404, errorCode || 404);
+    }
+}
+
+class TargetAlreadyExistException extends CommonException {
+    constructor(message, statusCode, errorCode) {
+        super(message || 'Target already exist', statusCode || 405, errorCode || 405);
+    }
+}
+
+module.exports = { CommonException, IncorrectPermission, BadRequestException, TargetNotExistException, TargetAlreadyExistException };

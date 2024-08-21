@@ -5,8 +5,8 @@ const mapNormalUserRoute = (router) => {
     router.post('/login', userController.login);
     router.post('/register', userController.register);
     router.get('/profile/:id', userController.getUserById);
-    router.post('/update-password', userController.updatePassword);
-    router.patch('/update', userController.updateUser);
+    router.post('/update-password/:id', userController.updatePassword);
+    router.patch('/update/:id', userController.updateUser);
 }
 
 module.exports = mapNormalUserRoute;

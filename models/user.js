@@ -1,4 +1,4 @@
-const mongoose = require('../configs/db');
+const mongoose = require('../configs/database');
 const USER_CONSTANTS = require('../constants/users');
 
 const Schema = mongoose.Schema;
@@ -66,7 +66,7 @@ const UserSchema = new Schema({
         trim: true
     },
     role: {
-        type: String,
+        type: Number,
         enum: rolesArray,
         default: USER_CONSTANTS.ROLES.user
     },

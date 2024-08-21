@@ -1,30 +1,26 @@
-const kafka = require('kafka-node');
-
-const userController = require('../controllers/userController');
-const { sendKafkaMessage, kafkaClient } = require('./producer');
+const userService = require('../services/userService');
+const { kafkaClient, Consumer } = require('./init');
 const { USER_TOPIC } = require('../constants/kafkaTopic');
 
-const Consumer = kafka.Consumer;
-const consumer = new Consumer(kafkaClient, [{ topic: USER_TOPIC.REQUEST, partition: 0 }], { autoCommit: true });
+const activeUserServiceConsumer = () => {
+    const userServiceConsumer = new Consumer(kafkaClient, [{ topic: USER_TOPIC.REQUEST }], { autoCommit: true });
 
-const activeKafkaConsumer = () => {
-    consumer.on('message', async (message) => {
-        let response;
+    userServiceConsumer.on('message', async (messages) => {
+
         try {
-            const { requestId, action, ...data } = JSON.parse(message);
+            const { action, ...data } = JSON.parse(messages.value);
 
-            if (typeof userController[action] === 'function') {
-                response = await userController[action](data);
+            if (typeof userService[action] === 'function') {
+                response = await userService[action](data);
             }
         } catch (error) {
             console.error('Error processing Kafka message:', error);
         }
-        sendKafkaMessage({ topic: USER_TOPIC.RESPONSE, messages: JSON.stringify({ requestId, response }) })
     });
 
-    consumer.on('error', (err) => {
+    userServiceConsumer.on('error', (err) => {
         console.error('Kafka Consumer error:', err);
     });
 }
 
-module.exports = activeKafkaConsumer;
+module.exports = { activeUserServiceConsumer };

@@ -2,18 +2,18 @@ require('dotenv').config();
 
 const express = require('express');
 const app = express();
-const port = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000;
 const router = require('./routes/index');
-const activeKafkaConsumer = require('./kafka/consumer');
+const startProtoServer = require('./grpc/server');
 
 app.use(express.json());
 
 app.use('/api/v1/users', router);
 
-activeKafkaConsumer();
+startProtoServer();
 
-const server = app.listen(port, () => {
-    console.log(`Express app listening at http://localhost:${port}`);
+const server = app.listen(PORT, () => {
+    console.log(`Express app listening at http://localhost:${PORT}`);
 });
 
 module.exports = { app, server };

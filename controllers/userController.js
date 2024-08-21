@@ -1,189 +1,92 @@
-const User = require('../models/user');
-const mongoose = require('mongoose');
-
-const USER_CONSTANTS = require('../constants/users');
-const { IncorrectPermission } = require('../exceptions/commonExceptions');
-
+const { CommonException } = require('../exceptions/commonExceptions');
+const userService = require('../services/userService');
 class UserController {
+    constructor() {
+        this.register = this.register.bind(this);
+        this.login = this.login.bind(this);
+        this.deleteUser = this.deleteUser.bind(this);
+        this.getUserById = this.getUserById.bind(this);
+        this.updatePassword = this.updatePassword.bind(this);
+        this.updateUser = this.updateUser.bind(this);
+        this.deleteMultipleUsers = this.deleteMultipleUsers.bind(this);
+    }
+    handleResponseError(res, error) {
+        if (error instanceof CommonException) {
+            return res.status(error.statusCode).json(error.message);
+        }
+        return res.status(500).json({ message: 'Something went wrong, please try again' });
+    }
+
     async index(req, res) {
         try {
-            const { username, fullname, email, page, limit } = req.query;
-            const skip = (page - 1) * limit;
-            const query = {
-                $or: []
-            };
+            const data = await userService.getUsersWithPagination(req);
 
-            if (username) {
-                query.$or.push({ username: new RegExp(username, 'i') });
-            }
-
-            if (fullname) {
-                const [firstName, lastName] = fullname.split(' ');
-                if (firstName) {
-                    query.$or.push({ firstName: new RegExp(firstName, 'i') });
-                }
-                if (lastName) {
-                    query.$or.push({ lastName: new RegExp(lastName, 'i') });
-                }
-            }
-
-            if (email) {
-                query.$or.push({ 'emails.email': new RegExp(email, 'i') });
-            }
-
-            if (query.$or.length === 0) {
-                delete query.$or;
-            }
-
-            const users = await User.find(query).skip(skip).limit(limit);
-            const totalUsers = await User.countDocuments(query);
-
-            res.json({
-                page,
-                limit,
-                totalUsers,
-                totalPages: Math.ceil(totalUsers / limit),
-                users
-            });
+            return res.json(data);
         } catch (error) {
-            res.status(500).json({ message: error.message });
+            return res.status(500).json({ message: error.message });
         }
     }
     async register(req, res) {
         try {
-            const { username, password, email } = req.body;
-            const existingUser = await User.findOne({ 'emails.email': email });
-
-            if (existingUser) {
-                return res.status(400).json({ message: 'Email already in use.' });
-            }
-
-            const newUser = new User({
-                username,
-                password,
-                emails: [{ email, isPrimary: true }]
-            });
-
-            await newUser.save();
-
-            const token = newUser.generateAuthToken();
+            const token = await userService.register(req);
 
             return res.status(201).json({ message: 'User registered successfully!', token });
         } catch (error) {
-            return res.status(400).json({ message: error.message });
+            return this.handleResponseError(res, error);
         }
     }
     async login(req, res) {
         try {
-            const { username, password } = req.body;
-            const user = await User.findOne({ username });
+            const token = await userService.login(req);
 
-            if (!user) {
-                return res.status(400).json({ message: 'Invalid username or password' });
-            }
-
-            const isValid = await user.validatePassword(password);
-
-            if (!isValid) {
-                return res.status(400).json({ message: 'Invalid username or password' });
-            }
-
-            const token = user.generateAuthToken();
             return res.json({ token });
         } catch (error) {
-            return res.status(500).json({ message: 'Error logging in', error: error.message });
+            return this.handleResponseError(res, error);
         }
     }
     async getUserById(req, res) {
         try {
-            const user = await User.findById(req.params.id);
+            const user = await userService.getUserById(req);
 
-            if (!user) {
-                return res.status(404).json({ message: 'User not found' });
-            }
-            const { password, ...userPublicInfo } = user;
-            res.json(userPublicInfo);
+            res.json(user);
         } catch (error) {
-            res.status(500).json({ message: error.message });
+            return this.handleResponseError(res, error);
         }
     }
     async updateUser(req, res) {
         try {
-            const { updates, currentUser } = req.body;
-            const targetUpdateId = req.params.id;
-
-            if (targetUpdateId != currentUser.userId && currentUser.role == USER_CONSTANTS.ROLES.user) {
-                throw new IncorrectPermission();
-            }
-            
-            const user = await User.findByIdAndUpdate(targetUpdateId, updates, { new: true });
-
-            if (!user) {
-                return res.status(404).json({ message: 'User not found' });
-            }
+            const user = await userService.updateUser(req);
 
             return res.json(user);
         } catch (error) {
-            return res.status(400).json({ message: error.message });
+            return this.handleResponseError(res, error);
         }
     }
     async updatePassword(req, res) {
         try {
-            const { oldPassword, newPassword } = req.body;
-            const user = await User.findById(req.params.id);
-
-            if (!user) {
-                return res.status(404).json({ message: 'User not found' });
-            }
-
-            const isMatch = await user.validatePassword(oldPassword);
-
-            if (!isMatch) {
-                return res.status(400).json({ message: 'Old password is incorrect' });
-            }
-
-            user.password = newPassword;
-            await user.save();
+            await userService.updatePassword(req);
 
             return res.json({ message: 'Password updated successfully' });
         } catch (error) {
-            return res.status(400).json({ message: error.message });
+            return this.handleResponseError(res, error);
         }
     }
     async deleteUser(req, res) {
         try {
-            const user = await User.findByIdAndDelete(req.params.id);
-
-            if (!user) {
-                return res.status(404).json({ message: 'User not found' });
-            }
+            await userService.deleteUser(req);
 
             return res.json({ message: 'User deleted successfully' });
         } catch (error) {
-            return res.status(500).json({ message: error.message });
+            return this.handleResponseError(res, error);
         }
     }
     async deleteMultipleUsers(req, res) {
         try {
-            const userIds = req.body.ids;
+            const deletedCount = userService.deleteMultipleUsers(req);
 
-            if (!Array.isArray(userIds) || userIds.length === 0) {
-                return res.status(400).json({ message: 'No user IDs provided' });
-            }
-
-            if (!userIds.every(id => mongoose.Types.ObjectId.isValid(id))) {
-                return res.status(400).json({ message: 'One or more provided IDs are invalid' });
-            }
-
-            const result = await User.deleteMany({ _id: { $in: userIds } });
-
-            if (result.deletedCount === 0) {
-                return res.status(404).json({ message: 'No users found with the provided IDs' });
-            }
-
-            return res.json({ message: `${result.deletedCount} users deleted successfully` });
+            return res.json({ message: `${deletedCount} users deleted successfully` });
         } catch (error) {
-            return res.status(500).json({ message: error.message });
+            return this.handleResponseError(res, error);
         }
     }
 }
