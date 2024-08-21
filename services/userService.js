@@ -2,11 +2,11 @@ const User = require('../models/user');
 const mongoose = require('mongoose');
 
 const USER_CONSTANTS = require('../constants/users');
-const { IncorrectPermission,TargetAlreadyExistException,TargetNotExistException, BadRequestException } = require('../exceptions/commonExceptions');
+const { IncorrectPermission,TargetAlreadyExistException,TargetNotExistException, BadRequestException } = require('../util/exceptions/commonExceptions');
 
 class UserService {
-    async getUsersWithPagination(req) {
-        const { username, fullName, email, page, limit } = req.query;
+    async getUsersWithPagination(payloads) {
+        const { username, fullName, email, page, limit } = payloads;
         const skip = (page - 1) * limit;
         const query = {
             $or: []
@@ -45,8 +45,8 @@ class UserService {
             users
         }
     }
-    async register(req) {
-        const { username, password, email } = req.body;
+    async register(payloads) {
+        const { username, password, email } = payloads;
         const existingUser = await User.findOne({ 'emails.email': email });
 
         if (existingUser) {
@@ -65,8 +65,8 @@ class UserService {
 
         return token;
     }
-    async login(req) {
-        const { username, password } = req.body;
+    async login(payloads) {
+        const { username, password } = payloads;
         const user = await User.findOne({ username });
 
         if (!user) {
@@ -82,17 +82,18 @@ class UserService {
         const token = user.generateAuthToken();
         return token;
     }
-    async getUserById(req) {
-        const user = await User.findById(req.params.id);
+    async getUserById(payloads) {
+        const user = await User.findById(payloads.id);
 
         if (!user) {
             throw new TargetNotExistException();
         }
+
         return user;
     }
-    async updateUser(req) {
-        const { updates, currentUser } = req.body;
-        const targetUpdateId = req.params.id;
+    async updateUser(payloads) {
+        const { updates, currentUser,id } = payloads.body;
+        const targetUpdateId = id;
 
         if (!currentUser.userId || targetUpdateId != currentUser.userId && currentUser.role == USER_CONSTANTS.ROLES.user) {
             throw new IncorrectPermission();
@@ -106,9 +107,9 @@ class UserService {
 
         return user;
     }
-    async updatePassword(req) {
-        const { oldPassword, newPassword } = req.body;
-        const user = await User.findById(req.params.id);
+    async updatePassword(payloads) {
+        const { oldPassword, newPassword,id } = payloads.body;
+        const user = await User.findById(id);
 
         if (!user) {
             throw new TargetNotExistException();
@@ -123,15 +124,15 @@ class UserService {
         user.password = newPassword;
         await user.save();
     }
-    async deleteUser(req) {
-        const user = await User.findByIdAndDelete(req.params.id);
+    async deleteUser(payloads) {
+        const user = await User.findByIdAndDelete(payloads.id);
 
         if (!user) {
             throw new TargetNotExistException();
         }
     }
-    async deleteMultipleUsers(req) {
-        const userIds = req.body.ids;
+    async deleteMultipleUsers(payloads) {
+        const userIds = payloads.ids;
 
         if (!Array.isArray(userIds) || userIds.length === 0) {
             throw new BadRequestException('No user IDs provided');

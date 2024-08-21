@@ -1,4 +1,4 @@
-const { CommonException } = require('../exceptions/commonExceptions');
+const { CommonException } = require('../util/exceptions/commonExceptions');
 const userService = require('../services/userService');
 class UserController {
     constructor() {
@@ -19,6 +19,7 @@ class UserController {
 
     async index(req, res) {
         try {
+            const payloads = req.query;
             const data = await userService.getUsersWithPagination(req);
 
             return res.json(data);
@@ -28,7 +29,7 @@ class UserController {
     }
     async register(req, res) {
         try {
-            const token = await userService.register(req);
+            const token = await userService.register(req.body);
 
             return res.status(201).json({ message: 'User registered successfully!', token });
         } catch (error) {
@@ -37,7 +38,7 @@ class UserController {
     }
     async login(req, res) {
         try {
-            const token = await userService.login(req);
+            const token = await userService.login(req.body);
 
             return res.json({ token });
         } catch (error) {
@@ -46,7 +47,7 @@ class UserController {
     }
     async getUserById(req, res) {
         try {
-            const user = await userService.getUserById(req);
+            const user = await userService.getUserById({ id: req.params.id });
 
             res.json(user);
         } catch (error) {
@@ -55,6 +56,7 @@ class UserController {
     }
     async updateUser(req, res) {
         try {
+            const payloads = { ...req.body, id: req.params.id };
             const user = await userService.updateUser(req);
 
             return res.json(user);
@@ -64,7 +66,8 @@ class UserController {
     }
     async updatePassword(req, res) {
         try {
-            await userService.updatePassword(req);
+            const payloads = { ...req.body, id: req.params.id };
+            await userService.updatePassword(payloads);
 
             return res.json({ message: 'Password updated successfully' });
         } catch (error) {
@@ -73,7 +76,7 @@ class UserController {
     }
     async deleteUser(req, res) {
         try {
-            await userService.deleteUser(req);
+            await userService.deleteUser({ id: req.params.id });
 
             return res.json({ message: 'User deleted successfully' });
         } catch (error) {
@@ -82,7 +85,7 @@ class UserController {
     }
     async deleteMultipleUsers(req, res) {
         try {
-            const deletedCount = userService.deleteMultipleUsers(req);
+            const deletedCount = userService.deleteMultipleUsers({ ids: req.body.ids });
 
             return res.json({ message: `${deletedCount} users deleted successfully` });
         } catch (error) {
