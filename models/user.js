@@ -1,10 +1,10 @@
 const mongoose = require('../configs/database');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const USER_CONSTANTS = require('../constants/users');
 
 const Schema = mongoose.Schema;
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET = Buffer.from(process.env.JWT_SECRET, 'base64');
 const JWT_EXPIRE = process.env.JWT_EXPIRE || '2h';
 
 const rolesArray = Object.values(USER_CONSTANTS.ROLES);
@@ -97,11 +97,12 @@ UserSchema.pre('save', async function (next) {
 UserSchema.methods.validatePassword = async function (password) {
     return bcrypt.compare(password, this.password);
 };
-UserSchema.methods.generateAuthToken = () => {
+UserSchema.methods.generateAuthToken = function () {
+    const payloads = { userId: this._id, username: this.username, role: this.role };
     return jwt.sign(
-        { userId: this._id, username: this.username, role: this.role },
+        payloads,
         JWT_SECRET,
-        { expiresIn: JWT_EXPIRE }
+        { algorithm: 'HS256', expiresIn: JWT_EXPIRE }
     );
 }
 
