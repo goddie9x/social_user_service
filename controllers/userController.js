@@ -57,7 +57,7 @@ class UserController {
     async updateUser(req, res) {
         try {
             const payloads = { ...req.body, id: req.params.id };
-            const user = await userService.updateUser(req);
+            const user = await userService.updateUser(payloads);
 
             return res.json(user);
         } catch (error) {

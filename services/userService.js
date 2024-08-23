@@ -2,7 +2,7 @@ const User = require('../models/user');
 const mongoose = require('mongoose');
 
 const USER_CONSTANTS = require('../constants/users');
-const { IncorrectPermission,TargetAlreadyExistException,TargetNotExistException, BadRequestException } = require('../util/exceptions/commonExceptions');
+const { IncorrectPermission, TargetAlreadyExistException, TargetNotExistException, BadRequestException } = require('../util/exceptions/commonExceptions');
 
 class UserService {
     async getUsersWithPagination(payloads) {
@@ -33,9 +33,9 @@ class UserService {
         if (query.$or.length === 0) {
             delete query.$or;
         }
-
-        const users = await User.find(query).skip(skip).limit(limit);
-        const totalUsers = await User.countDocuments(query);
+        const getUsersPromise = User.find(query).skip(skip).limit(limit);
+        const getTotalUsersPromise = User.countDocuments(query);
+        const [users, totalUsers] = await Promise.all([getUsersPromise, getTotalUsersPromise]);
 
         return {
             page,
@@ -92,7 +92,7 @@ class UserService {
         return user;
     }
     async updateUser(payloads) {
-        const { updates, currentUser,id } = payloads.body;
+        const { updates, currentUser, id } = payloads.body;
         const targetUpdateId = id;
 
         if (!currentUser.userId || targetUpdateId != currentUser.userId && currentUser.role == USER_CONSTANTS.ROLES.user) {
@@ -108,7 +108,7 @@ class UserService {
         return user;
     }
     async updatePassword(payloads) {
-        const { oldPassword, newPassword,id } = payloads.body;
+        const { oldPassword, newPassword, id } = payloads.body;
         const user = await User.findById(id);
 
         if (!user) {
