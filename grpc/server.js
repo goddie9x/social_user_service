@@ -2,14 +2,14 @@ const grpc = require('@grpc/grpc-js');
 
 const userService = require('../services/userService');
 const userProto = require('../generated/user_grpc_pb');
-const { handleGrpcError } = require('../util/grpc/common');
+const { handleGrpcError } = require('../utils/grpc/common');
 const {
     formatAuthResponse,
     formatDeleteMultipleResponse,
     formatDeleteResponse,
     formatGetUsersWithPaginationResponse,
     formatUserResponse,
-} = require('../util/grpc/user');
+} = require('../utils/grpc/user');
 const protoServer = new grpc.Server();
 
 

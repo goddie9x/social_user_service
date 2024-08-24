@@ -1,4 +1,4 @@
-const { CommonException } = require('../util/exceptions/commonExceptions');
+const { CommonException } = require('../utils/exceptions/commonExceptions');
 const userService = require('../services/userService');
 class UserController {
     constructor() {

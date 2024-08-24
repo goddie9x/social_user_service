@@ -2,7 +2,7 @@ const User = require('../models/user');
 const mongoose = require('mongoose');
 
 const USER_CONSTANTS = require('../constants/users');
-const { IncorrectPermission, TargetAlreadyExistException, TargetNotExistException, BadRequestException } = require('../util/exceptions/commonExceptions');
+const { IncorrectPermission, TargetAlreadyExistException, TargetNotExistException, BadRequestException } = require('../utils/exceptions/commonExceptions');
 
 class UserService {
     async getUsersWithPagination(payloads) {
