@@ -5,7 +5,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const router = require('./routes/index');
 const startProtoServer = require('./grpc/server');
-const getAuthAndPutCurrentUserAuthToBody = require('./middlewares/getAuthAndPutCurrentUserAuthToBody');
+const getAuthAndPutCurrentUserAuthToBody = require('./utils/middlewares/getAuthAndPutCurrentUserAuthToBody');
 
 app.use(express.json());
 app.use(getAuthAndPutCurrentUserAuthToBody);
