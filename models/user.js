@@ -1,7 +1,7 @@
 const mongoose = require('../configs/database');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const USER_CONSTANTS = require('../constants/users');
+const USER_CONSTANTS = require('../utils/constants/users');
 
 const Schema = mongoose.Schema;
 const JWT_SECRET = Buffer.from(process.env.JWT_SECRET, 'base64');
@@ -68,7 +68,7 @@ const UserSchema = new Schema({
     role: {
         type: Number,
         enum: rolesArray,
-        default: USER_CONSTANTS.ROLES.user
+        default: USER_CONSTANTS.ROLES.USER
     },
     followers: [{
         type: Schema.Types.ObjectId,

@@ -1,7 +1,9 @@
 const { CommonException } = require('../utils/exceptions/commonExceptions');
 const userService = require('../services/userService');
-class UserController {
+const BasicController = require('../utils/controllers/basicController');
+class UserController extends BasicController {
     constructor() {
+        super();
         this.register = this.register.bind(this);
         this.login = this.login.bind(this);
         this.deleteUser = this.deleteUser.bind(this);
@@ -9,12 +11,6 @@ class UserController {
         this.updatePassword = this.updatePassword.bind(this);
         this.updateUser = this.updateUser.bind(this);
         this.deleteMultipleUsers = this.deleteMultipleUsers.bind(this);
-    }
-    handleResponseError(res, error) {
-        if (error instanceof CommonException) {
-            return res.status(error.statusCode).json(error.message);
-        }
-        return res.status(500).json({ message: 'Something went wrong, please try again' });
     }
 
     async index(req, res) {
@@ -24,7 +20,7 @@ class UserController {
 
             return res.json(data);
         } catch (error) {
-            return res.status(500).json({ message: error.message });
+            this.handleResponseError(res, error);
         }
     }
     async register(req, res) {

@@ -1,10 +1,16 @@
 const User = require('../models/user');
 const mongoose = require('mongoose');
-
-const USER_CONSTANTS = require('../constants/users');
+const USER_CONSTANTS = require('../utils/constants/users');
 const { IncorrectPermission, TargetAlreadyExistException, TargetNotExistException, BadRequestException } = require('../utils/exceptions/commonExceptions');
+const BasicService = require('../utils/services/basicService');
 
-class UserService {
+class UserService extends BasicService {
+    constructor() {
+        super();
+        this.getPaginatedResults = this.getPaginatedResults.bind(this);
+        this.getUsersWithPagination = this.getUsersWithPagination.bind(this);
+    }
+
     async getUsersWithPagination(payloads) {
         const { username, fullName, email, page, limit } = payloads;
         const skip = (page - 1) * limit;
@@ -33,15 +39,20 @@ class UserService {
         if (query.$or.length === 0) {
             delete query.$or;
         }
-        const getUsersPromise = User.find(query).skip(skip).limit(limit);
-        const getTotalUsersPromise = User.countDocuments(query);
-        const [users, totalUsers] = await Promise.all([getUsersPromise, getTotalUsersPromise]);
+        const {
+            results: users, totalDocuments: totalUsers, totalPages
+        } = await this.getPaginatedResults({
+            model: User,
+            query,
+            page,
+            limit
+        });
 
         return {
             page,
             limit,
             totalUsers,
-            totalPages: Math.ceil(totalUsers / limit),
+            totalPages,
             users
         }
     }
@@ -95,7 +106,7 @@ class UserService {
         const { updates, currentUser, id } = payloads.body;
         const targetUpdateId = id;
 
-        if (!currentUser.userId || targetUpdateId != currentUser.userId && currentUser.role == USER_CONSTANTS.ROLES.user) {
+        if (targetUpdateId != currentUser.userId && currentUser.role == USER_CONSTANTS.ROLES.USER) {
             throw new IncorrectPermission();
         }
 
