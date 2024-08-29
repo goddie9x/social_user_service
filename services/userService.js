@@ -99,7 +99,6 @@ class UserService extends BasicService {
         if (!user) {
             throw new TargetNotExistException();
         }
-
         return user;
     }
     async updateUser(payloads) {
