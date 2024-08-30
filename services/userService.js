@@ -108,8 +108,29 @@ class UserService extends BasicService {
         if (targetUpdateId != currentUser.userId && currentUser.role == USER_CONSTANTS.ROLES.USER) {
             throw new IncorrectPermission();
         }
+        const { role, ...validUpdate } = updates;
 
-        const user = await User.findByIdAndUpdate(targetUpdateId, updates, { new: true });
+        const user = await User.findByIdAndUpdate(targetUpdateId, validUpdate, { new: true });
+
+        if (!user) {
+            throw new TargetNotExistException();
+        }
+
+        return user;
+    }
+    async updateUserRole(payloads) {
+        const { role, currentUser, id } = payloads.body;
+        const targetUpdateId = id;
+        const roleInt = parseInt(role);
+
+        if(!Object.values(USER_CONSTANTS.ROLES).includes(roleInt)){
+            throw new TargetNotExistException('No role exist');
+        }
+        if (currentUser.role > roleInt) {
+            throw new IncorrectPermission();
+        }
+
+        const user = await User.findByIdAndUpdate(targetUpdateId, {role:roleInt}, { new: true });
 
         if (!user) {
             throw new TargetNotExistException();

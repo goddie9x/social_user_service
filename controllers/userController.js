@@ -70,6 +70,16 @@ class UserController extends BasicController {
             return this.handleResponseError(res, error);
         }
     }
+    async updateUserRole(req, res) {
+        try {
+            const payloads = { ...req.body, id: req.params.id };
+            await userService.updatePassword(payloads);
+
+            return res.json({ message: 'Role updated successfully' });
+        } catch (error) {
+            return this.handleResponseError(res, error);
+        }
+    }
     async deleteUser(req, res) {
         try {
             await userService.deleteUser({ id: req.params.id });
