@@ -56,6 +56,14 @@ class UserService extends BasicService {
             users
         }
     }
+    async getListUserByIds(payloads) {
+        const users = await User.find({
+            _id: {
+                $in: payloads.ids
+            }
+        });
+        return { users }
+    }
     async register(payloads) {
         const { username, password, email } = payloads;
         const existingUser = await User.findOne({ 'emails.email': email });
@@ -123,14 +131,14 @@ class UserService extends BasicService {
         const targetUpdateId = id;
         const roleInt = parseInt(role);
 
-        if(!Object.values(USER_CONSTANTS.ROLES).includes(roleInt)){
+        if (!Object.values(USER_CONSTANTS.ROLES).includes(roleInt)) {
             throw new TargetNotExistException('No role exist');
         }
         if (currentUser.role > roleInt) {
             throw new IncorrectPermission();
         }
 
-        const user = await User.findByIdAndUpdate(targetUpdateId, {role:roleInt}, { new: true });
+        const user = await User.findByIdAndUpdate(targetUpdateId, { role: roleInt }, { new: true });
 
         if (!user) {
             throw new TargetNotExistException();

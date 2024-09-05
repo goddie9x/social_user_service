@@ -84,6 +84,16 @@ const UserSchema = new Schema({
     }
 });
 
+UserSchema.index({ username: 1, role: 1 });
+
+UserSchema.index({ "emails.email": 1, "emails.isPrimary": 1, "emails.isVerified": 1 });
+
+UserSchema.index({ "phones.number": 1, "phones.isPrimary": 1, "phones.isVerified": 1 });
+
+UserSchema.index({ followers: 1, createdAt: -1 });
+
+
+
 UserSchema.pre('save', async function (next) {
     if (this.isModified('password')) {
         this.password = await bcrypt.hash(this.password, 10);

@@ -2,6 +2,7 @@ const grpc = require('@grpc/grpc-js');
 
 const userService = require('../services/userService');
 const userProto = require('../generated/user_grpc_pb');
+const userMessages = require('../generated/user_pb')
 const { handleGrpcError } = require('../utils/grpc/common');
 const {
     formatAuthResponse,
@@ -9,62 +10,58 @@ const {
     formatDeleteResponse,
     formatGetUsersWithPaginationResponse,
     formatUserResponse,
-} = require('../utils/grpc/user');
+    formatGetListUserByIdsResponse,
+} = require('./formatResponse');
 const protoServer = new grpc.Server();
 
+const handleGrpcFormatRequest = (methodName, request) => {
+    switch (methodName) {
+        case 'getUsersWithPagination':
+        case 'register':
+        case 'login':
+            return request.toObject();
+        case 'getUserById':
+        case 'updateUser':
+        case 'updatePassword':
+        case 'deleteUser':
+            return { id: request.getId() };
+        case 'deleteMultipleUsers':
+        case 'getListUserByIds':
+            return { ids: request.getIdsList() };
+        default:
+            throw new Error(`Unsupported method name: ${methodName}`);
+    }
+}
+
+const handleGrpcFormatResponse = (methodName, result) => {
+    switch (methodName) {
+        case 'getUsersWithPagination':
+            return formatGetUsersWithPaginationResponse(result, userMessages);
+        case 'getListUserByIds':
+            return formatGetListUserByIdsResponse(result, userMessages);
+        case 'register':
+        case 'login':
+            return formatAuthResponse(result, userMessages);
+        case 'getUserById':
+            return formatUserResponse(result, userMessages);
+        case 'updateUser':
+        case 'updatePassword':
+            return formatUserResponse(result, userMessages);
+        case 'deleteUser':
+            return formatDeleteResponse(result, userMessages);
+        case 'deleteMultipleUsers':
+            return formatDeleteMultipleResponse(result, userMessages);
+        default:
+            throw new Error(`Unsupported method name: ${methodName}`);
+    }
+}
 
 const handleGrpcRequest = async (methodName, request, callback) => {
     try {
-        let formattedRequest;
-        switch (methodName) {
-            case 'getUsersWithPagination':
-                formattedRequest = request.toObject();
-                break;
-            case 'register':
-            case 'login':
-                formattedRequest = request.toObject();
-                break;
-            case 'getUserById':
-            case 'updateUser':
-            case 'updatePassword':
-            case 'deleteUser':
-                formattedRequest = { id: request.getId() };
-                break;
-            case 'deleteMultipleUsers':
-                formattedRequest = { ids: request.getIdsList() };
-                break;
-            default:
-                throw new Error(`Unsupported method name: ${methodName}`);
-        }
-
+        const formattedRequest = handleGrpcFormatRequest(methodName, request);
         const serviceMethod = userService[methodName].bind(userService);
         const result = await serviceMethod(formattedRequest);
-
-        let response;
-        switch (methodName) {
-            case 'getUsersWithPagination':
-                response = formatGetUsersWithPaginationResponse(result);
-                break;
-            case 'register':
-            case 'login':
-                response = formatAuthResponse(result);
-                break;
-            case 'getUserById':
-                response = formatUserResponse(result);
-                break;
-            case 'updateUser':
-            case 'updatePassword':
-                response = formatUserResponse(result);
-                break;
-            case 'deleteUser':
-                response = formatDeleteResponse(result);
-                break;
-            case 'deleteMultipleUsers':
-                response = formatDeleteMultipleResponse(result);
-                break;
-            default:
-                throw new Error(`Unsupported method name: ${methodName}`);
-        }
+        const response = handleGrpcFormatResponse(methodName, result);
 
         return callback(null, response);
     } catch (error) {
@@ -73,14 +70,14 @@ const handleGrpcRequest = async (methodName, request, callback) => {
     }
 };
 
-
-
 const startProtoServer = () => {
     const PROTO_PORT = process.env.PROTO_PORT || '0.0.0.0:50051';
 
     protoServer.addService(userProto.UserServiceService, {
         getUsersWithPagination: (call, callback) =>
             handleGrpcRequest('getUsersWithPagination', call.request, callback),
+        getListUserByIds: (call, callback) =>
+            handleGrpcRequest('getListUserByIds', call.request, callback),
         register: (call, callback) =>
             handleGrpcRequest('register', call.request, callback),
         login: (call, callback) =>
@@ -101,7 +98,7 @@ const startProtoServer = () => {
         if (err) {
             console.error(`Failed to start server: ${err.message}`);
         } else {
-            console.log(`Server running on port ${port}`);
+            console.log(`GRPC server running on port ${port}`);
         }
     });
 };
