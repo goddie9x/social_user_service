@@ -1,0 +1,8 @@
+node_modules
+logs
+__test__
+jest.config.js
+.gitignore
+.git
+.dockerignore
+Dockerfile
