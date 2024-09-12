@@ -1,7 +1,7 @@
 const userService = require('../services/userService');
-const { kafkaClient } = require('./init');
+const { kafkaClient } = require('../utils/kafka/producer');
 const { USER_TOPIC } = require('../constants/kafkaTopic');
-const { activeServiceConsumer } = require('../utils/kafka');
+const { activeServiceConsumer } = require('../utils/kafka/consumer');
 
 const activeUserServiceConsumer = () => {
     activeServiceConsumer({
