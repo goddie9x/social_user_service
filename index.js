@@ -10,7 +10,6 @@ const connectToDiscoveryServer = require('./utils/configs/discovery');
 
 app.use(express.json());
 app.use(getAuthAndPutCurrentUserAuthToBody);
-
 app.use(process.env.APP_PATH||'/api/v1/users', router);
 
 startProtoServer();
