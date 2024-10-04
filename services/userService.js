@@ -110,15 +110,14 @@ class UserService extends BasicService {
         return user;
     }
     async updateUser(payloads) {
-        const { updates, currentUser, id } = payloads.body;
+        const { currentUser, id,role, ...userUpdateInfo } = payloads;
         const targetUpdateId = id;
 
         if (targetUpdateId != currentUser.userId && currentUser.role == USER_CONSTANTS.ROLES.USER) {
             throw new IncorrectPermission();
         }
-        const { role, ...validUpdate } = updates;
 
-        const user = await User.findByIdAndUpdate(targetUpdateId, validUpdate, { new: true });
+        const user = await User.findByIdAndUpdate(targetUpdateId, userUpdateInfo, { new: true });
 
         if (!user) {
             throw new TargetNotExistException();
@@ -127,7 +126,7 @@ class UserService extends BasicService {
         return user;
     }
     async updateUserRole(payloads) {
-        const { role, currentUser, id } = payloads.body;
+        const { role, currentUser, id } = payloads;
         const targetUpdateId = id;
         const roleInt = parseInt(role);
 
@@ -147,7 +146,7 @@ class UserService extends BasicService {
         return user;
     }
     async updatePassword(payloads) {
-        const { oldPassword, newPassword, id } = payloads.body;
+        const { oldPassword, newPassword, id } = payloads;
         const user = await User.findById(id);
 
         if (!user) {

@@ -1,4 +1,3 @@
-const { CommonException } = require('../utils/exceptions/commonExceptions');
 const userService = require('../services/userService');
 const BasicController = require('../utils/controllers/basicController');
 class UserController extends BasicController {
