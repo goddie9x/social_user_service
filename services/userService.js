@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const USER_CONSTANTS = require('../utils/constants/users');
 const { IncorrectPermission, TargetAlreadyExistException, TargetNotExistException, BadRequestException } = require('../utils/exceptions/commonExceptions');
 const BasicService = require('../utils/services/basicService');
+const connectRedis = require('../utils/redis');
 
 class UserService extends BasicService {
     constructor() {
@@ -80,7 +81,7 @@ class UserService extends BasicService {
 
         await newUser.save();
 
-        const token = newUser.generateAuthToken();
+        const token = await newUser.generateAuthToken();
 
         return token;
     }
@@ -98,8 +99,14 @@ class UserService extends BasicService {
             throw new BadRequestException('Password incorrect');
         }
 
-        const token = user.generateAuthToken();
+        const token = await user.generateAuthToken();
         return token;
+    }
+    async clearToken(payloads){
+        const { currentUser } = payloads;
+        const redisClient = await connectRedis();
+        
+        return await redisClient.del(currentUser.userId);
     }
     async getUserById(payloads) {
         const user = await User.findById(payloads.id);
@@ -110,14 +117,15 @@ class UserService extends BasicService {
         return user;
     }
     async updateUser(payloads) {
-        const { currentUser, id,role, ...userUpdateInfo } = payloads;
+        const { updates, currentUser, id } = payloads;
         const targetUpdateId = id;
 
         if (targetUpdateId != currentUser.userId && currentUser.role == USER_CONSTANTS.ROLES.USER) {
             throw new IncorrectPermission();
         }
+        const { role, ...validUpdate } = updates;
 
-        const user = await User.findByIdAndUpdate(targetUpdateId, userUpdateInfo, { new: true });
+        const user = await User.findByIdAndUpdate(targetUpdateId, validUpdate, { new: true });
 
         if (!user) {
             throw new TargetNotExistException();

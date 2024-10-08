@@ -21,6 +21,7 @@
     "jsonwebtoken": "^9.0.2",
     "kafkajs": "^2.2.4",
     "mongoose": "^8.5.3",
+    "redis": "^4.7.0",
     "user_service": "file:"
   },
   "devDependencies": {

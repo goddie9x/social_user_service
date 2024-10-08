@@ -7,6 +7,7 @@ const mapNormalUserRoute = (router) => {
     router.get('/profile/:id', userController.getUserById);
     router.patch('/update-password/:id', userController.updatePassword);
     router.patch('/update/:id', userController.updateUser);
+    router.delete('/logout-all', userController.logoutAllDevice);
 }
 
 module.exports = mapNormalUserRoute;

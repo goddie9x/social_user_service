@@ -40,6 +40,15 @@ class UserController extends BasicController {
             return this.handleResponseError(res, error);
         }
     }
+    async logoutAllDevice(req, res) {
+        try {
+            await userService.clearToken(req.body);
+
+            return res.json({ message:'Logout all device success' });
+        } catch (error) {
+            return this.handleResponseError(res, error);
+        }
+    }
     async getUserById(req, res) {
         try {
             const user = await userService.getUserById({ id: req.params.id });
