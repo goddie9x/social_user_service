@@ -1,21 +1,16 @@
 const userService = require('../services/userService');
 const BasicController = require('../utils/controllers/basicController');
+const bindMethodsWithThisContext = require('../utils/classes/bindMethodsWithThisContext');
 class UserController extends BasicController {
     constructor() {
         super();
-        this.register = this.register.bind(this);
-        this.login = this.login.bind(this);
-        this.deleteUser = this.deleteUser.bind(this);
-        this.getUserById = this.getUserById.bind(this);
-        this.updatePassword = this.updatePassword.bind(this);
-        this.updateUser = this.updateUser.bind(this);
-        this.deleteMultipleUsers = this.deleteMultipleUsers.bind(this);
+        bindMethodsWithThisContext(this)
     }
 
     async index(req, res) {
         try {
             const payloads = req.query;
-            const data = await userService.getUsersWithPagination(req);
+            const data = await userService.getUsersWithPagination(payloads);
 
             return res.json(data);
         } catch (error) {
@@ -24,18 +19,44 @@ class UserController extends BasicController {
     }
     async register(req, res) {
         try {
-            const token = await userService.register(req.body);
+            const {
+                accessToken,
+                refreshToken
+            } = await userService.register(req.body);
 
-            return res.status(201).json({ message: 'User registered successfully!', token });
+            res.cookie('refreshToken', refreshToken, {
+                httpOnly: true,
+                sameSite: 'Strict',
+                maxAge: process.env.REFRESH_TOKEN_MAX_AGE_MILLISECONDS
+            });
+
+            return res.status(201).json({ message: 'User registered successfully!', token: accessToken });
         } catch (error) {
             return this.handleResponseError(res, error);
         }
     }
     async login(req, res) {
         try {
-            const token = await userService.login(req.body);
+            const {
+                accessToken,
+                refreshToken
+            } = await userService.login(req.body);
+            res.cookie('refreshToken', refreshToken, {
+                httpOnly: true,
+                sameSite: 'Strict',
+                maxAge: process.env.REFRESH_TOKEN_MAX_AGE_MILLISECONDS
+            });
 
-            return res.json({ token });
+            return res.json({ token: accessToken });
+        } catch (error) {
+            return this.handleResponseError(res, error);
+        }
+    }
+    async refreshToken(req, res) {
+        try {
+            const token = await userService.refreshToken(req.cookies);
+
+            return res.status(200).json(token);
         } catch (error) {
             return this.handleResponseError(res, error);
         }
@@ -44,7 +65,7 @@ class UserController extends BasicController {
         try {
             await userService.clearToken(req.body);
 
-            return res.json({ message:'Logout all device success' });
+            return res.json({ message: 'Logout all device success' });
         } catch (error) {
             return this.handleResponseError(res, error);
         }

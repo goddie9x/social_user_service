@@ -4,7 +4,8 @@ const USER_CONSTANTS = require('../utils/constants/users');
 const { IncorrectPermission, TargetAlreadyExistException, TargetNotExistException, BadRequestException } = require('../utils/exceptions/commonExceptions');
 const BasicService = require('../utils/services/basicService');
 const connectRedis = require('../utils/redis');
-
+const JWT_REFRESH_TOKEN_SECRET = Buffer.from(process.env.JWT_REFRESH_TOKEN_SECRET, 'base64');
+const jwt = require('jsonwebtoken');
 class UserService extends BasicService {
     constructor() {
         super();
@@ -81,9 +82,12 @@ class UserService extends BasicService {
 
         await newUser.save();
 
-        const token = await newUser.generateAuthToken();
-
-        return token;
+        const accessToken = await newUser.generateAuthToken();
+        const refreshToken = await newUser.generateRefreshTokenAndSaveIfNeeded();
+        return {
+            accessToken,
+            refreshToken
+        };
     }
     async login(payloads) {
         const { username, password } = payloads;
@@ -99,14 +103,39 @@ class UserService extends BasicService {
             throw new BadRequestException('Password incorrect');
         }
 
-        const token = await user.generateAuthToken();
-        return token;
+        const accessToken = await user.generateAuthToken();
+        const refreshToken = await user.generateRefreshTokenAndSaveIfNeeded();
+
+        return {
+            accessToken,
+            refreshToken
+        };
     }
-    async clearToken(payloads){
+    async refreshToken(payloads) {
+        let userId;
+        try {
+            const { refreshToken } = payloads;
+
+            const data = jwt.verify(refreshToken, JWT_REFRESH_TOKEN_SECRET);
+            userId = data.userId;
+        }
+        catch (err) {
+            console.log(err);
+            throw new BadRequestException('Invalid token or token expired');
+        }
+        if (!userId) {
+            throw new BadRequestException('Invalid token');
+        }
+        const user = await User.findById(userId);
+        return await user.generateAuthToken();
+    }
+    async clearToken(payloads) {
         const { currentUser } = payloads;
         const redisClient = await connectRedis();
-        
-        return await redisClient.del(currentUser.userId);
+        const user = await User.findById(currentUser.userId);
+        user.refreshToken = null;
+        await user.save();
+        await redisClient.del(currentUser.userId);
     }
     async getUserById(payloads) {
         const user = await User.findById(payloads.id);
