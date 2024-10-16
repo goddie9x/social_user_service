@@ -13,8 +13,7 @@ class UserService extends BasicService {
         this.getUsersWithPagination = this.getUsersWithPagination.bind(this);
     }
 
-    async getUsersWithPagination(payloads) {
-        const { username, fullName, email, page, limit } = payloads;
+    async getUsersWithPagination({ username, fullName, email, page, limit }) {
         const skip = (page - 1) * limit;
         const query = {
             $or: []
@@ -58,16 +57,15 @@ class UserService extends BasicService {
             users
         }
     }
-    async getListUserByIds(payloads) {
+    async getListUserByIds({ids}) {
         const users = await User.find({
             _id: {
-                $in: payloads.ids
+                $in: ids
             }
         });
         return { users }
     }
-    async register(payloads) {
-        const { username, password, email } = payloads;
+    async register({ username, password, email }) {
         const existingUser = await User.findOne({ 'emails.email': email });
 
         if (existingUser) {
@@ -89,8 +87,7 @@ class UserService extends BasicService {
             refreshToken
         };
     }
-    async login(payloads) {
-        const { username, password } = payloads;
+    async login({ username, password }) {
         const user = await User.findOne({ username });
 
         if (!user) {
@@ -111,11 +108,9 @@ class UserService extends BasicService {
             refreshToken
         };
     }
-    async refreshToken(payloads) {
+    async refreshToken({ refreshToken } ) {
         let userId;
         try {
-            const { refreshToken } = payloads;
-
             const data = jwt.verify(refreshToken, JWT_REFRESH_TOKEN_SECRET);
             userId = data.userId;
         }
@@ -129,24 +124,22 @@ class UserService extends BasicService {
         const user = await User.findById(userId);
         return await user.generateAuthToken();
     }
-    async clearToken(payloads) {
-        const { currentUser } = payloads;
+    async clearToken({ currentUser }) {
         const redisClient = await connectRedis();
         const user = await User.findById(currentUser.userId);
         user.refreshToken = null;
         await user.save();
         await redisClient.del(currentUser.userId);
     }
-    async getUserById(payloads) {
-        const user = await User.findById(payloads.id);
+    async getUserById({id}) {
+        const user = await User.findById(id);
 
         if (!user) {
             throw new TargetNotExistException();
         }
         return user;
     }
-    async updateUser(payloads) {
-        const { updates, currentUser, id } = payloads;
+    async updateUser({ updates, currentUser, id }) {
         const targetUpdateId = id;
 
         if (targetUpdateId != currentUser.userId && currentUser.role == USER_CONSTANTS.ROLES.USER) {
@@ -162,8 +155,7 @@ class UserService extends BasicService {
 
         return user;
     }
-    async updateUserRole(payloads) {
-        const { role, currentUser, id } = payloads;
+    async updateUserRole({ role, currentUser, id }) {
         const targetUpdateId = id;
         const roleInt = parseInt(role);
 
@@ -182,8 +174,7 @@ class UserService extends BasicService {
 
         return user;
     }
-    async updatePassword(payloads) {
-        const { oldPassword, newPassword, id } = payloads;
+    async updatePassword({ oldPassword, newPassword, id }) {
         const user = await User.findById(id);
 
         if (!user) {
@@ -199,15 +190,15 @@ class UserService extends BasicService {
         user.password = newPassword;
         await user.save();
     }
-    async deleteUser(payloads) {
-        const user = await User.findByIdAndDelete(payloads.id);
+    async deleteUser({id}) {
+        const user = await User.findByIdAndDelete(id);
 
         if (!user) {
             throw new TargetNotExistException();
         }
     }
-    async deleteMultipleUsers(payloads) {
-        const userIds = payloads.ids;
+    async deleteMultipleUsers({ids}) {
+        const userIds = ids;
 
         if (!Array.isArray(userIds) || userIds.length === 0) {
             throw new BadRequestException('No user IDs provided');
