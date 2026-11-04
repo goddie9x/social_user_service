@@ -5,7 +5,7 @@ const USER_CONSTANTS = require('@godsocial/utils/constants/users');
 const connectRedis = require('@godsocial/utils/redis')
 
 const Schema = mongoose.Schema;
-const JWT_ACCESS_TOKEN_SECRET = Buffer.from(process.env.JWT_ACCESS_TOKEN_SECRET, 'base64');
+const JWT_SECRET = Buffer.from(process.env.JWT_SECRET, 'base64');
 const JWT_REFRESH_TOKEN_SECRET = Buffer.from(process.env.JWT_REFRESH_TOKEN_SECRET, 'base64');
 const JWT_ACCESS_TOKEN_EXPIRE = process.env.JWT_ACCESS_TOKEN_EXPIRE || '2h';
 const JWT_REFRESH_TOKEN_EXPIRE = process.env.JWT_REFRESH_TOKEN_EXPIRE || '7d';
@@ -126,7 +126,7 @@ UserSchema.methods.generateAuthToken = async function () {
     if (!token) {
         token = jwt.sign(
             payloads,
-            JWT_ACCESS_TOKEN_SECRET,
+            JWT_SECRET,
             { algorithm: 'HS256', expiresIn: JWT_ACCESS_TOKEN_EXPIRE }
         );
         await redisClient.set(userId, token, { EX: REDIS_TOKEN_EXPIRE_SECONDS });
