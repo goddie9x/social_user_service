@@ -102,8 +102,9 @@ class UserController extends BasicController {
     }
     async updateUserRole(req, res) {
         try {
-            const payloads = { ...req.body, id: req.params.id };
-            await userService.updatePassword(payloads);
+            // PATCH /role has no :id param — the target user id comes from the body.
+            const payloads = { ...req.body, id: req.body.id || req.body.userId, currentUser: req.body.currentUser };
+            await userService.updateUserRole(payloads);
 
             return res.json({ message: 'Role updated successfully' });
         } catch (error) {
@@ -121,7 +122,7 @@ class UserController extends BasicController {
     }
     async deleteMultipleUsers(req, res) {
         try {
-            const deletedCount = userService.deleteMultipleUsers({ ids: req.body.ids });
+            const deletedCount = await userService.deleteMultipleUsers({ ids: req.body.ids });
 
             return res.json({ message: `${deletedCount} users deleted successfully` });
         } catch (error) {

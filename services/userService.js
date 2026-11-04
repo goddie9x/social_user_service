@@ -165,7 +165,11 @@ class UserService extends BasicService {
         if (!Object.values(USER_CONSTANTS.ROLES).includes(roleInt)) {
             throw new TargetNotExistException('No role exist');
         }
-        if (currentUser.role > roleInt) {
+        // Only admins may change roles. (Route-level requireAdmin is the primary
+        // guard; this is defense-in-depth. The old `currentUser.role > roleInt`
+        // check was written for the previous enum where ADMIN=0 and is inverted
+        // under the new enum UNKNOWN=0/USER=1/MOD=2/ADMIN=3.)
+        if (!currentUser || currentUser.role !== USER_CONSTANTS.ROLES.ADMIN) {
             throw new IncorrectPermission();
         }
 
