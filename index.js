@@ -5,8 +5,8 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const router = require('./routes/index');
 const startProtoServer = require('./grpc/server');
-const getAuthAndPutCurrentUserAuthToBody = require('./utils/middlewares/getAuthAndPutCurrentUserAuthToBody');
-const connectToDiscoveryServer = require('./utils/configs/discovery');
+const getAuthAndPutCurrentUserAuthToBody = require('@godsocial/utils/middlewares/getAuthAndPutCurrentUserAuthToBody');
+const connectToDiscoveryServer = require('@godsocial/utils/configs/discovery');
 const cookieParser = require('cookie-parser');
 
 app.use(express.json());

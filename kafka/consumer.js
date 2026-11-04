@@ -1,6 +1,6 @@
 const userService = require('../services/userService');
 const { USER_TOPIC } = require('../constants/kafkaTopic');
-const { activeServiceConsumer, createTopicIfNotExists } = require('../utils/kafka/consumer');
+const { activeServiceConsumer, createTopicIfNotExists } = require('@godsocial/utils/kafka/consumer');
 
 const activeUserServiceConsumer = async () => {
     await createTopicIfNotExists([{ topic: USER_TOPIC.REQUEST }]);

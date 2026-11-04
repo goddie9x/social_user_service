@@ -1,8 +1,8 @@
 const mongoose = require('../configs/database');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const USER_CONSTANTS = require('../utils/constants/users');
-const connectRedis = require('../utils/redis')
+const USER_CONSTANTS = require('@godsocial/utils/constants/users');
+const connectRedis = require('@godsocial/utils/redis')
 
 const Schema = mongoose.Schema;
 const JWT_ACCESS_TOKEN_SECRET = Buffer.from(process.env.JWT_ACCESS_TOKEN_SECRET, 'base64');

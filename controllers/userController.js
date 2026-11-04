@@ -1,6 +1,6 @@
 const userService = require('../services/userService');
-const BasicController = require('../utils/controllers/basicController');
-const bindMethodsWithThisContext = require('../utils/classes/bindMethodsWithThisContext');
+const BasicController = require('@godsocial/utils/controllers/basicController');
+const bindMethodsWithThisContext = require('@godsocial/utils/classes/bindMethodsWithThisContext');
 class UserController extends BasicController {
     constructor() {
         super();

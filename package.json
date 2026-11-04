@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@godsocial/utils": "github:goddie9x/social_utils#v1.0.0",
     "@grpc/grpc-js": "^1.11.1",
     "bcrypt": "^5.1.1",
     "cookie-parser": "^1.4.7",
@@ -22,8 +23,7 @@
     "jsonwebtoken": "^9.0.2",
     "kafkajs": "^2.2.4",
     "mongoose": "^8.5.3",
-    "redis": "^4.7.0",
-    "user_service": "file:"
+    "redis": "^4.7.0"
   },
   "devDependencies": {
     "grpc-tools": "^1.12.4",

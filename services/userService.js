@@ -1,9 +1,9 @@
 const User = require('../models/user');
 const mongoose = require('mongoose');
-const USER_CONSTANTS = require('../utils/constants/users');
-const { IncorrectPermission, TargetAlreadyExistException, TargetNotExistException, BadRequestException } = require('../utils/exceptions/commonExceptions');
-const BasicService = require('../utils/services/basicService');
-const connectRedis = require('../utils/redis');
+const USER_CONSTANTS = require('@godsocial/utils/constants/users');
+const { IncorrectPermission, TargetAlreadyExistException, TargetNotExistException, BadRequestException } = require('@godsocial/utils/exceptions/commonExceptions');
+const BasicService = require('@godsocial/utils/services/basicService');
+const connectRedis = require('@godsocial/utils/redis');
 const JWT_REFRESH_TOKEN_SECRET = Buffer.from(process.env.JWT_REFRESH_TOKEN_SECRET, 'base64');
 const jwt = require('jsonwebtoken');
 class UserService extends BasicService {

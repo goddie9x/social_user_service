@@ -3,7 +3,7 @@ const grpc = require('@grpc/grpc-js');
 const userService = require('../services/userService');
 const userProto = require('../generated/user_grpc_pb');
 const userMessages = require('../generated/user_pb')
-const { handleGrpcError } = require('../utils/grpc/common');
+const { handleGrpcError } = require('@godsocial/utils/grpc/common');
 const {
     formatAuthResponse,
     formatDeleteMultipleResponse,
