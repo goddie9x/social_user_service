@@ -142,10 +142,13 @@ class UserService extends BasicService {
     async updateUser({ updates, currentUser, id }) {
         const targetUpdateId = id;
 
+        if (!currentUser) {
+            throw new IncorrectPermission();
+        }
         if (targetUpdateId != currentUser.userId && currentUser.role == USER_CONSTANTS.ROLES.USER) {
             throw new IncorrectPermission();
         }
-        const { role, ...validUpdate } = updates;
+        const { role, ...validUpdate } = updates || {};
 
         const user = await User.findByIdAndUpdate(targetUpdateId, validUpdate, { new: true });
 

@@ -81,7 +81,8 @@ class UserController extends BasicController {
     }
     async updateUser(req, res) {
         try {
-            const payloads = { ...req.body, id: req.params.id };
+            const { currentUser, ...updateFields } = req.body;
+            const payloads = { updates: updateFields, currentUser, id: req.params.id };
             const user = await userService.updateUser(payloads);
 
             return res.json(user);
